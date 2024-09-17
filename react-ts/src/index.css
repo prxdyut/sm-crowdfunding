@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  color: white;
+  background: gray;
+}
+
+input {
+  border: 2px solid black;
+}
+
+dialog, button {
+  border: 2px solid white;
+}

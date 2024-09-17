@@ -1,0 +1,37 @@
+2024/09/17-21:26:49.730 7c28 Reusing MANIFEST D:\Projects\sm-crowdfunding\browserData\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/MANIFEST-000001
+2024/09/17-21:26:49.731 7c28 Recovering log #2005
+2024/09/17-21:26:49.754 7c28 Reusing old log D:\Projects\sm-crowdfunding\browserData\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/002005.log 
+2024/09/17-21:26:52.118 dc4 Level-0 table #2013: started
+2024/09/17-21:26:52.231 dc4 Level-0 table #2013: 808807 bytes OK
+2024/09/17-21:26:52.314 dc4 Delete type=0 #2005
+2024/09/17-21:26:52.315 4428 Manual compaction at level-0 from ' (\x02\x00\x00\x00' @ 72057594037927935 : 1 .. ' )\x02\x00\x00\x00' @ 0 : 0; will stop at (end)
+2024/09/17-21:26:53.116 4428 Compacting 1@1 + 4@2 files
+2024/09/17-21:26:54.379 4428 Generated table #2014@1: 84358 keys, 2244831 bytes
+2024/09/17-21:26:54.859 4428 Generated table #2015@1: 49520 keys, 2210641 bytes
+2024/09/17-21:26:55.355 4428 Generated table #2016@1: 19464 keys, 2179181 bytes
+2024/09/17-21:26:55.666 4428 Generated table #2017@1: 44991 keys, 1418873 bytes
+2024/09/17-21:26:55.666 4428 Compacted 1@1 + 4@2 files => 8053526 bytes
+2024/09/17-21:26:55.704 4428 compacted to: files[ 0 0 4 0 0 0 0 ]
+2024/09/17-21:26:55.704 4428 Delete type=2 #2007
+2024/09/17-21:26:55.704 4428 Delete type=2 #2008
+2024/09/17-21:26:55.704 4428 Delete type=2 #2009
+2024/09/17-21:26:55.704 4428 Delete type=2 #2010
+2024/09/17-21:26:55.704 4428 Delete type=2 #2013
+2024/09/17-21:28:52.051 4428 Manual compaction at level-0 from ' )\x02\x00\x00\x00' @ 72057594037927935 : 1 .. ' *\x02\x00\x00\x00' @ 0 : 0; will stop at (end)
+2024/09/17-21:29:10.687 7de4 Level-0 table #2019: started
+2024/09/17-21:29:11.089 7de4 Level-0 table #2019: 339794 bytes OK
+2024/09/17-21:29:11.170 7de4 Delete type=0 #2012
+2024/09/17-21:29:11.171 7184 Manual compaction at level-0 from ' *\x02\x00\x00\x00' @ 72057594037927935 : 1 .. ' +\x02\x00\x00\x00' @ 0 : 0; will stop at (end)
+2024/09/17-21:29:11.689 4428 Compacting 1@1 + 4@2 files
+2024/09/17-21:29:13.352 4428 Generated table #2020@1: 85462 keys, 2246711 bytes
+2024/09/17-21:29:13.667 4428 Generated table #2021@1: 49227 keys, 2209188 bytes
+2024/09/17-21:29:13.764 4428 Generated table #2022@1: 19815 keys, 2180865 bytes
+2024/09/17-21:29:13.855 4428 Generated table #2023@1: 45397 keys, 1454629 bytes
+2024/09/17-21:29:13.855 4428 Compacted 1@1 + 4@2 files => 8091393 bytes
+2024/09/17-21:29:13.893 4428 compacted to: files[ 0 0 4 0 0 0 0 ]
+2024/09/17-21:29:13.893 4428 Delete type=2 #2014
+2024/09/17-21:29:13.893 4428 Delete type=2 #2015
+2024/09/17-21:29:13.893 4428 Delete type=2 #2016
+2024/09/17-21:29:13.893 4428 Delete type=2 #2017
+2024/09/17-21:29:13.893 4428 Delete type=2 #2019
+2024/09/17-21:29:15.089 1798 Manual compaction at level-0 from ' +\x02\x00\x00\x00' @ 72057594037927935 : 1 .. ' ,\x02\x00\x00\x00' @ 0 : 0; will stop at (end)
