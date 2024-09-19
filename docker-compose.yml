@@ -3,26 +3,20 @@ services:
   mongodb:
     image: mongo:latest
     ports:
-      - "27017:27017"
+      - "27019:27017"
     volumes:
       - mongodb_data:/data/db
 
   backend:
     build: ./bun_js-ts
-    ports:
-      - "3000:3000"
     depends_on:
-      - mongodb
+      - mongodb 
     environment:
       - ENV=production
       - MONGODB_URI=mongodb://mongodb:27017/myapp
 
-  
   frontend:
     build: ./react-ts
-    volumes:
-      - .:/app
-      - /app/node_modules
     ports:
       - "5173:5173"
     environment:

@@ -1,5 +1,6 @@
 import puppeteer, { Browser, Page } from "puppeteer";
 import { Message, User } from "./models";
+import type { Types } from "mongoose";
 
 let context: { browser?: Browser; page?: Page } = {};
 
@@ -137,12 +138,19 @@ async function sendWhatsappMessage(
 export async function addMessageToQueue(data: {
   message: string;
   userId: string;
+  messageId?: string;
 }): Promise<void> {
   await requestQueue.enqueue(async () => {
-    const savedMessage = await new Message({
-      ...data,
-      timestamp: new Date(),
-    }).save();
+    const savedMessage = Boolean(data?.messageId)
+      ? (await Message.findOne({ _id: data.messageId })) ||
+        (await new Message({
+          ...data,
+          timestamp: new Date(),
+        }).save())
+      : await new Message({
+          ...data,
+          timestamp: new Date(),
+        }).save();
 
     try {
       const user = await User.findById(data.userId);

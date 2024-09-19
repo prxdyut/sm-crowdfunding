@@ -37,6 +37,19 @@ const UserSchema = new Schema({
 
 export const User = mongoose.model("User", UserSchema);
 
+const ButtonSchema = new Schema({
+  action: {
+    type: String,
+    required: true,
+  },
+  label: {
+    type: String,
+    required: true,
+  },
+});
+
+export const Button = mongoose.model("Button", ButtonSchema);
+
 const MessageSchema = new Schema({
   userId: {
     type: Schema.Types.ObjectId,

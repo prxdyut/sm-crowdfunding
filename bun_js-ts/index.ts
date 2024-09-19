@@ -1,9 +1,10 @@
 import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
-import { Message, User } from "./models";
+import { Button, Message, User } from "./models";
 import {
   addMessageToQueue,
+  generateQRCode,
   initializeBrowser,
   isLoggedIn,
   retryFailedMessages,
@@ -20,20 +21,20 @@ mongoose.connect(MONGODB_URI);
 initializeBrowser().then(console.log);
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: "*",
     methods: ["GET", "POST", "PUT", "DELETE"],
   })
 );
 
 app.use(express.json());
-app.use("/assets", express.static("public"));
+app.use("/api/assets", express.static("public"));
 const contributionMessage = (name, amount) =>
   `Hello! ${name}, \nYour contribution of ₹${amount} has been recorded you will be notified once it is verified`;
 const bankMessage = (name, amount) =>
   `Hello! ${name}, \nUnfortunately we cant process Your contribution of ₹${amount} as this big amount is not acceptable through upi`;
 const maxAmount = 100;
 
-app.post("/new", async (req, res) => {
+app.post("/api/new", async (req, res) => {
   try {
     const { name, phone, email, amount, timestamp, reference } = req.body;
     if (!name || !phone || !email || !amount) throw Error("Form Invalid");
@@ -43,7 +44,7 @@ app.post("/new", async (req, res) => {
       amount < maxAmount
         ? contributionMessage(name, amount)
         : bankMessage(name, amount);
-        
+
     let user = await User.findOne({ phone });
     if (!user) {
       user = new User({ name, email, phone });
@@ -74,15 +75,15 @@ app.post("/new", async (req, res) => {
   }
 });
 
-app.post("/bank-transfer", async (req, res) => {
+app.post("/api/bank-transfer", async (req, res) => {
   try {
     const { name, phone, email, amount, timestamp, reference } = req.body;
     if (!name || !phone || !email || !amount) throw Error("Form Invalid");
 
     console.log("Received Data : ", { name, phone, email, amount });
 
-    const message = `Hello! ${name}, \nHere comes your bank details`
-        
+    const message = `Hello! ${name}, \nHere comes your bank details`;
+
     let user = await User.findOne({ phone });
     if (!user) {
       user = new User({ name, email, phone });
@@ -100,7 +101,49 @@ app.post("/bank-transfer", async (req, res) => {
   }
 });
 
-app.get("/data", async (req, res) => {
+app.get("/api/login", async (req, res) => {
+  try {
+    if (await isLoggedIn()) {
+      res.json({ message: "Already Loggedin" });
+      return;
+    } else {
+      const qrCode = await generateQRCode();
+      res.json({ qrCode });
+    }
+  } catch (e: any) {
+    res.json({ message: e.message });
+  }
+});
+app.post("/api/buttons", async (req, res) => {
+  try {
+    const { label, action } = req.body;
+    const newButton = new Button({ label, action });
+    await newButton.save();
+    res.status(201).json(newButton);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+app.get("/api/buttons", async (req, res) => {
+  try {
+    const buttons = await Button.find();
+    res.json(buttons);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete("/api/buttons/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    await Button.findByIdAndDelete(id);
+    res.json({ message: "Button deleted successfully" });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+app.get("/api/data", async (req, res) => {
   try {
     const allUsers = await User.find();
     const allData = allUsers.flatMap((user) =>
@@ -123,7 +166,8 @@ app.get("/data", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-app.get("/public-contributors", async (req, res) => {
+
+app.get("/api/public-contributors", async (req, res) => {
   try {
     const users = await User.aggregate([
       { $unwind: "$contributions" },
@@ -143,7 +187,6 @@ app.get("/public-contributors", async (req, res) => {
       { $sort: { totalAmount: -1 } },
     ]);
 
-    // Add ranking to each user
     const rankedUsers = users.map((user, index) => ({
       ...user,
       rank: index + 1,
@@ -155,7 +198,7 @@ app.get("/public-contributors", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch public contributors" });
   }
 });
-app.put("/verify/:userId/:contributionId", async (req, res) => {
+app.put("/api/verify/:userId/:contributionId", async (req, res) => {
   try {
     const { userId, contributionId } = req.params;
     const user = await User.findById(userId);
@@ -174,7 +217,7 @@ app.put("/verify/:userId/:contributionId", async (req, res) => {
   }
 });
 
-app.put("/edit-contribution/:userId/:contributionId", async (req, res) => {
+app.put("/api/edit-contribution/:userId/:contributionId", async (req, res) => {
   try {
     const { userId, contributionId } = req.params;
     const { amount, reference } = req.body; // Add reference here
@@ -200,27 +243,69 @@ app.put("/edit-contribution/:userId/:contributionId", async (req, res) => {
   }
 });
 
-app.put("/remove-contribution/:userId/:contributionId", async (req, res) => {
+app.put(
+  "/api/remove-contribution/:userId/:contributionId",
+  async (req, res) => {
+    try {
+      const { userId, contributionId } = req.params;
+
+      const user = await User.findById(userId);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      const contribution = user.contributions.id(contributionId);
+      if (!contribution) {
+        return res.status(404).json({ error: "Contribution not found" });
+      }
+
+      contribution.removed = true;
+      await user.save();
+
+      res.json({ success: true, message: "Contribution marked as removed" });
+    } catch (error) {
+      console.error("Error marking contribution as removed:", error);
+      res.status(500).json({ error: "Failed to mark contribution as removed" });
+    }
+  }
+);
+app.get("/api/failed-messages", async (req, res) => {
   try {
-    const { userId, contributionId } = req.params;
+    const failedMessages = await Message.find({ failed: true }).populate(
+      "userId"
+    );
 
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
-    }
-
-    const contribution = user.contributions.id(contributionId);
-    if (!contribution) {
-      return res.status(404).json({ error: "Contribution not found" });
-    }
-
-    contribution.removed = true;
-    await user.save();
-
-    res.json({ success: true, message: "Contribution marked as removed" });
+    res.json(failedMessages);
   } catch (error) {
-    console.error("Error marking contribution as removed:", error);
-    res.status(500).json({ error: "Failed to mark contribution as removed" });
+    console.error("Error fetching failed messages:", error);
+    res.status(500).json({ error: "Failed to fetch failed messages" });
+  }
+});
+
+// New endpoint for retrying a single failed message
+app.post("/api/retry-message/:messageId", async (req, res) => {
+  try {
+    const { messageId } = req.params;
+    const message = await Message.findById(messageId);
+
+    if (!message) {
+      return res.status(404).json({ error: "Message not found" });
+    }
+
+    try {
+      await addMessageToQueue({
+        message: message.message,
+        userId: message.userId.toString(),
+        messageId: message._id.toString(),
+      });
+    } catch (e: any) {
+      throw Error("Could not send message : " + error.message);
+    }
+
+    res.json({ success: true, message: "Message retry initiated" });
+  } catch (error) {
+    console.error("Error retrying message:", error);
+    res.status(500).json({ error: "Failed to retry message" });
   }
 });
 

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 
 const AdminPage = () => {
@@ -101,7 +102,7 @@ const AdminPage = () => {
 
   const handleVerify = async (userId, contributionId) => {
     try {
-      await fetch(`//verify/${userId}/${contributionId}`, {
+      await fetch(`/api/verify/${userId}/${contributionId}`, {
         method: "PUT",
       });
       fetchData();
@@ -114,7 +115,7 @@ const AdminPage = () => {
     if (window.confirm("Are you sure you want to remove this contribution?")) {
       try {
         const response = await fetch(
-          `//remove-contribution/${userId}/${contributionId}`,
+          `/api/remove-contribution/${userId}/${contributionId}`,
           {
             method: "PUT",
           }
@@ -131,12 +132,9 @@ const AdminPage = () => {
 
   const handleRetryMessage = async (messageId) => {
     try {
-      const response = await fetch(
-        `//retry-message/${messageId}`,
-        {
-          method: "POST",
-        }
-      );
+      const response = await fetch(`/api/retry-message/${messageId}`, {
+        method: "POST",
+      });
       if (!response.ok) {
         throw new Error("Failed to retry message");
       }
@@ -159,7 +157,55 @@ const AdminPage = () => {
       console.error("Error retrying all messages:", error);
     }
   };
-  console.log(data);
+
+  const [buttons, setButtons] = useState([]);
+  const [newLabel, setNewLabel] = useState("");
+  const [newAction, setNewAction] = useState("");
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    fetchButtons();
+  }, []);
+
+  const fetchButtons = async () => {
+    try {
+      const response = await fetch(`${"/api"}/buttons`);
+      if (!response.ok) throw new Error("Failed to fetch buttons");
+      const data = await response.json();
+      setButtons(data);
+    } catch (err) {
+      setError("Failed to fetch buttons. Please try again.");
+    }
+  };
+
+  const addButton = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await fetch(`${"/api"}/buttons`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ label: newLabel, action: newAction }),
+      });
+      if (!response.ok) throw new Error("Failed to add button");
+      setNewLabel("");
+      setNewAction("");
+      fetchButtons();
+    } catch (err) {
+      setError("Failed to add button. Please try again.");
+    }
+  };
+
+  const deleteButton = async (id) => {
+    try {
+      const response = await fetch(`${"/api"}/buttons/${id}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) throw new Error("Failed to delete button");
+      fetchButtons();
+    } catch (err) {
+      setError("Failed to delete button. Please try again.");
+    }
+  };
   return (
     <div className="p-4">
       <h1 className="text-2xl font-bold mb-4">Admin Dashboard</h1>
@@ -296,8 +342,85 @@ const AdminPage = () => {
         </table>
       </div>
 
+      <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-lg shadow-xl">
+        <h1 className="text-2xl font-bold mb-6 text-gray-800">
+          Button Management
+        </h1>
+
+        <form onSubmit={addButton} className="mb-6">
+          <div className="mb-4">
+            <input
+              type="text"
+              value={newLabel}
+              onChange={(e) => setNewLabel(e.target.value)}
+              placeholder="Button Label"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+            />
+          </div>
+          <div className="mb-4">
+            <input
+              type="text"
+              value={newAction}
+              onChange={(e) => setNewAction(e.target.value)}
+              placeholder="Button Action"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+            />
+          </div>
+          <button
+            type="submit"
+            className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 flex items-center justify-center"
+          >
+            + Add Button
+          </button>
+        </form>
+
+        {error && (
+          <div
+            className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4"
+            role="alert"
+          >
+            <p>{error}</p>
+          </div>
+        )}
+
+        <div className="space-y-2">
+          {buttons.map((button) => (
+            <div
+              key={button._id}
+              className="flex justify-between items-center p-3 bg-gray-100 rounded-md"
+            >
+              <span className="text-gray-800">
+                {button.label} - {button.action}
+              </span>
+              <button
+                onClick={() => deleteButton(button._id)}
+                className="text-red-500 hover:text-red-700 focus:outline-none"
+              >
+                delete
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
       <div>
         <h2 className="text-xl font-semibold mb-2">Failed Messages</h2>
+        <button
+          onClick={async () => {
+            const response = await fetch("/api/login");
+            const jsonData = await response.json();
+            const qrLink = jsonData?.qrCode;
+            if (qrLink) {
+              window.open("/api" + qrLink);
+            } else {
+              alert(jsonData?.message);
+            }
+          }}
+          className="bg-green-500 text-white px-4 py-2 rounded mb-2"
+        >
+          Login
+        </button>
         <button
           onClick={handleRetryAllMessages}
           className="bg-green-500 text-white px-4 py-2 rounded mb-2"

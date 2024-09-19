@@ -7,6 +7,7 @@ import ContributePage from "./sections/ContributePage";
 import ContributorsPage from "./sections/ContributorsPage";
 import HomePage from "./sections/HomePage";
 import Whatsapp from "./sections/whatsappPage";
+import ButtonManagement from "./sections/ButtonsPage";
 
 export default function App() {
   return (
@@ -17,6 +18,7 @@ export default function App() {
             index
             element={
               <div>
+                <ButtonManagement />
                 <TopBar />
                 <HomePage />
                 <AboutPage />
